@@ -1,0 +1,81 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend-v1
+  namespace: comic-prod
+  labels:
+    app: backend
+    version: v1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: backend
+      version: v1
+  template:
+    metadata:
+      labels:
+        app: backend
+        version: v1
+    spec:
+      containers:
+      - name: backend
+        image: comic-generator-backend:latest
+        imagePullPolicy: IfNotPresent
+        envFrom:
+        - secretRef:
+            name: backend-env
+        env:
+        - name: DATABASE_URL
+          value: postgresql+asyncpg://postgres:postgres@postgres:5432/comic_generator
+        ports:
+        - containerPort: 8000
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend-v2
+  namespace: comic-prod
+  labels:
+    app: backend
+    version: v2
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: backend
+      version: v2
+  template:
+    metadata:
+      labels:
+        app: backend
+        version: v2
+    spec:
+      containers:
+      - name: backend
+        image: comic-generator-backend:latest
+        imagePullPolicy: IfNotPresent
+        envFrom:
+        - secretRef:
+            name: backend-env
+        env:
+        - name: DATABASE_URL
+          value: postgresql+asyncpg://postgres:postgres@postgres:5432/comic_generator
+        ports:
+        - containerPort: 8000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend
+  namespace: comic-prod
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/path: "/metrics"
+    prometheus.io/port: "8000"
+spec:
+  ports:
+  - port: 8000
+    targetPort: 8000
+  selector:
+    app: backend
