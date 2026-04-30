@@ -16,28 +16,29 @@ spec:
 apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
 metadata:
-  name: comic-routing
+  name: comic-api-routing
   namespace: comic-prod
 spec:
-  hosts: ["*"]
+  hosts:
+    - "comic-api.apl.io.vn"
   gateways: ["comic-gateway"]
   http:
-    - match:
-        - uri:
-            prefix: "/api/"
-      route:
+    - route:
         - destination:
             host: backend
             port:
               number: 8000
-    - match:
-        - uri:
-            prefix: "/health"
-      route:
-        - destination:
-            host: backend
-            port:
-              number: 8000
+---
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: comic-frontend-routing
+  namespace: comic-prod
+spec:
+  hosts:
+    - "comic.apl.io.vn"
+  gateways: ["comic-gateway"]
+  http:
     - route:
         - destination:
             host: frontend
