@@ -16,7 +16,8 @@ spec:
     spec:
       containers:
         - name: backend
-          image: localhost:5000/comic-backend:latest
+          image: docker.io/library/docker-backend:latest
+          imagePullPolicy: Never
           ports:
             - containerPort: 8000
           env:

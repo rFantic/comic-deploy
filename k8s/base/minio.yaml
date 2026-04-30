@@ -33,9 +33,6 @@ spec:
                 secretKeyRef:
                   name: comic-secrets
                   key: MINIO_ROOT_PASSWORD
-          volumeMounts:
-            - name: minio-data
-              mountPath: /data
           resources:
             requests:
               cpu: 50m

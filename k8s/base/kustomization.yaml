@@ -13,3 +13,8 @@ resources:
   - frontend.yaml
   - istio.yaml
   - cloudflared.yaml
+
+secretGenerator:
+  - name: comic-secrets
+    envs:
+      - .env.shared
