@@ -1,0 +1,77 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: worker
+  namespace: comic-prod
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: worker
+  template:
+    metadata:
+      labels:
+        app: worker
+    spec:
+      containers:
+        - name: worker
+          image: localhost:5000/comic-backend:latest
+          command: ["python", "-m", "app.workers"]
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: comic-secrets
+                  key: DATABASE_URL
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: comic-secrets
+                  key: DB_USER
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: comic-secrets
+                  key: DB_PASSWORD
+            - name: DB_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: comic-secrets
+                  key: DB_NAME
+            - name: REDIS_URL
+              value: "redis://redis.comic-prod.svc.cluster.local:6379/0"
+            - name: MINIO_ENDPOINT
+              value: "minio.comic-prod.svc.cluster.local:9000"
+            - name: MINIO_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: comic-secrets
+                  key: MINIO_ACCESS_KEY
+            - name: MINIO_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: comic-secrets
+                  key: MINIO_SECRET_KEY
+            - name: MINIO_SECURE
+              value: "false"
+            - name: SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: comic-secrets
+                  key: SECRET_KEY
+            - name: PROJECTS_DIR
+              value: "/data/projects"
+          volumeMounts:
+            - name: projects-data
+              mountPath: /data/projects
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: "1"
+              memory: 1Gi
+      volumes:
+        - name: projects-data
+          persistentVolumeClaim:
+            claimName: backend-projects
