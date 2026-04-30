@@ -15,7 +15,8 @@ spec:
     spec:
       containers:
         - name: worker
-          image: localhost:5000/comic-backend:latest
+          image: docker.io/library/docker-backend:latest
+          imagePullPolicy: Never
           command: ["python", "-m", "app.workers"]
           env:
             - name: DATABASE_URL
