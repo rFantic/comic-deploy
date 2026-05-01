@@ -39,14 +39,6 @@ spec:
     - "*"
   gateways: ["comic-gateway"]
   http:
-    - match:
-        - uri:
-            prefix: "/api/"
-      route:
-        - destination:
-            host: backend
-            port:
-              number: 8000
     - route:
         - destination:
             host: frontend
