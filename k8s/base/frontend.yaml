@@ -16,7 +16,8 @@ spec:
     spec:
       containers:
         - name: frontend
-          image: localhost:5000/comic-frontend:latest
+          image: docker.io/library/docker-frontend:latest
+          imagePullPolicy: Never
           ports:
             - containerPort: 3000
           env:

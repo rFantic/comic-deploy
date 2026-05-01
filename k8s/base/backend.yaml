@@ -64,6 +64,8 @@ spec:
                   key: SECRET_KEY
             - name: DEBUG
               value: "false"
+            - name: CORS_ALLOWED_ORIGINS
+              value: "https://comic.apl.io.vn,https://comic-api.apl.io.vn"
             - name: PROJECTS_DIR
               value: "/data/projects"
           volumeMounts:
