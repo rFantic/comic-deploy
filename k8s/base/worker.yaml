@@ -62,9 +62,13 @@ spec:
                   key: SECRET_KEY
             - name: PROJECTS_DIR
               value: "/data/projects"
+            - name: FIREFOX_COOKIE_PATH
+              value: "/root/.mozilla/firefox/676nh1ee.near/cookies.sqlite"
           volumeMounts:
             - name: projects-data
               mountPath: /data/projects
+            - name: firefox-profile
+              mountPath: /root/.mozilla/firefox/676nh1ee.near
           resources:
             requests:
               cpu: 100m
@@ -76,3 +80,7 @@ spec:
         - name: projects-data
           persistentVolumeClaim:
             claimName: backend-projects
+        - name: firefox-profile
+          hostPath:
+            path: /host-firefox-profile
+            type: Directory

@@ -18,3 +18,5 @@ secretGenerator:
   - name: comic-secrets
     envs:
       - .env.shared
+    options:
+      disableNameSuffixHash: true
