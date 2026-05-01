@@ -1,45 +1,38 @@
 KIND_CLUSTER := comic-cluster
-KIND_CONFIG := kind-config.yaml
 K8S_DIR := k8s/base
-REGISTRY := localhost:5000
-BACKEND_IMAGE := $(REGISTRY)/comic-backend
-FRONTEND_IMAGE := $(REGISTRY)/comic-frontend
+BACKEND_IMAGE := docker.io/library/docker-backend:latest
+FRONTEND_IMAGE := docker.io/library/docker-frontend:latest
 BACKEND_DIR := ../comic-backend/main
-FRONTEND_DIR := ../comic-frontend
+FRONTEND_DIR := ../comic-frontend/main
+API_URL ?= https://comic-api.apl.io.vn
 
-.PHONY: help cluster-create cluster-delete cluster-reset build push deploy undeploy logs port-forward status
+.PHONY: help status build-frontend build-backend load-frontend load-backend deploy undeploy logs istio-install istio-uninstall smoke-test
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
 
-# ── Cluster ──────────────────────────────────────────────
-
-cluster-create: ## Create Kind cluster
-	kind create cluster --name $(KIND_CLUSTER) --config $(KIND_CONFIG)
-
-cluster-delete: ## Delete Kind cluster
-	kind delete cluster --name $(KIND_CLUSTER)
-
-cluster-reset: cluster-delete cluster-create ## Reset cluster (delete + create)
+# ── Status ──────────────────────────────────────────────
 
 status: ## Show cluster and pod status
-	kubectl get nodes
-	@echo "---"
 	kubectl get pods -n comic-prod -o wide
 
 # ── Images ───────────────────────────────────────────────
 
-build: ## Build backend and frontend images
-	docker build -t $(BACKEND_IMAGE):latest -f $(BACKEND_DIR)/infra/docker/Dockerfile $(BACKEND_DIR)
-	@echo "Frontend image: build manually when ready"
-	@echo "  docker build -t $(FRONTEND_IMAGE):latest -f $(FRONTEND_DIR)/Dockerfile $(FRONTEND_DIR)"
+build-frontend: ## Build frontend image (API_URL=https://... make build-frontend)
+	docker build --build-arg VITE_API_URL=$(API_URL) -t $(FRONTEND_IMAGE) $(FRONTEND_DIR)
 
-push: ## Push images to local registry
-	docker push $(BACKEND_IMAGE):latest
+build-backend: ## Build backend image
+	docker build -t $(BACKEND_IMAGE) -f $(BACKEND_DIR)/infra/docker/Dockerfile $(BACKEND_DIR)
+
+load-frontend: ## Load frontend image into Kind
+	kind load docker-image $(FRONTEND_IMAGE) --name $(KIND_CLUSTER)
+
+load-backend: ## Load backend image into Kind
+	kind load docker-image $(BACKEND_IMAGE) --name $(KIND_CLUSTER)
 
 # ── Deploy ───────────────────────────────────────────────
 
-deploy: ## Apply all K8s manifests
+deploy: ## Apply all K8s manifests via kustomize
 	kubectl apply -k $(K8S_DIR)
 
 undeploy: ## Delete all resources
@@ -50,9 +43,6 @@ undeploy: ## Delete all resources
 logs: ## Tail logs (usage: make logs APP=backend)
 	kubectl logs -f -n comic-prod -l app=$(APP)
 
-port-forward: ## Port-forward backend (usage: make port-forward)
-	kubectl port-forward -n comic-prod svc/backend 8000:8000
-
 # ── Istio ────────────────────────────────────────────────
 
 istio-install: ## Install Istio with default profile
@@ -60,3 +50,9 @@ istio-install: ## Install Istio with default profile
 
 istio-uninstall: ## Uninstall Istio
 	istioctl uninstall -y --purge
+
+# ── Smoke test ───────────────────────────────────────────
+
+smoke-test: ## Run frontend smoke test (BT_DIR=<path> make smoke-test)
+	BT_DIR=$${BT_DIR:-$$PWD/../comic-frontend/main/scripts/../../.agents/skills/browser-tools} \
+	bash $(FRONTEND_DIR)/scripts/smoke-test.sh https://comic.apl.io.vn
