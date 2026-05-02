@@ -57,7 +57,7 @@ restart-backend: ## Restart backend deployment
 restart-frontend: ## Restart frontend deployment
 	kubectl rollout restart deployment/frontend -n comic-prod
 
-restart: restart-backend restart-frontend ## Restart all deployments
+restart: restart-backend restart-frontend restart-worker ## Restart all deployments
 
 restart-worker: ## Restart worker deployment
 	kubectl rollout restart deployment/worker -n comic-prod
@@ -80,4 +80,4 @@ istio-uninstall: ## Uninstall Istio
 
 # ── Quick workflow ───────────────────────────────────────
 
-full-deploy: build load deploy ## Build, load, and deploy everything
+full-deploy: build load deploy restart ## Build, load, deploy, and restart everything
