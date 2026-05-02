@@ -6,18 +6,23 @@ Kubernetes manifests for staging the comic-generator project on a local [Kind](h
 
 ```
 Internet → Cloudflare Edge → cloudflared (in-cluster) → Istio IngressGateway
-                                                            ├─ /api/*  → backend
-                                                            ├─ /health → backend
-                                                            └─ /*      → frontend
+                                                            └─ /* → frontend nginx
+                                                                 ├─ /api/*     → backend:8000
+                                                                 ├─ /health    → backend:8000
+                                                                 ├─ /openapi.json → backend:8000
+                                                                 └─ /*         → serve static SPA
 ```
 
 Local dev (no tunnel):
 
 ```
 Browser → localhost:30080 → Kind NodePort → Istio IngressGateway
-                                                      ├─ /api/*  → backend
-                                                      └─ /*      → frontend
+                                                  └─ /* → frontend nginx
+                                                       ├─ /api/*     → backend:8000
+                                                       └─ /*         → serve static SPA
 ```
+
+**Key design:** All traffic goes through frontend nginx, which proxies API requests to the backend. This avoids Istio routing issues with path rewriting (e.g., `/api/docs` → backend's `/docs` for Swagger UI).
 
 ## Prerequisites
 
@@ -78,6 +83,15 @@ If your Firefox profile path changes, update:
 1. `kind-config.yaml` → `extraMounts.hostPath`
 2. `k8s/base/backend.yaml` → `volumeMounts.mountPath` + `FIREFOX_COOKIE_PATH` env var
 3. `k8s/base/worker.yaml` → same as backend
+
+### Cookie Sync (WAL Checkpoint)
+
+Firefox uses SQLite WAL mode — new cookie writes go to `cookies.sqlite-wal`, but the bind mount serves a stale snapshot. To solve this:
+
+1. **Init container** (`cookie-sync-configmap.yaml`): Runs on every pod start, copies cookies from host mount to `/tmp/cookie-sync/`, applies `PRAGMA wal_checkpoint(TRUNCATE)`, then exits.
+2. **Per-request sync** (`app/utils/cookie_sync.py` in backend): Before every Gemini API call, re-copies from host mount + checkpoints. This ensures session tokens are always fresh.
+
+The init container script is stored in a ConfigMap (`cookie-sync-scripts`) mounted at `/scripts/cookie-sync.py`.
 
 ## Environment Variables
 
