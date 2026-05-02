@@ -13,6 +13,7 @@ resources:
   - frontend.yaml
   - istio.yaml
   - cloudflared.yaml
+  - cookie-sync-configmap.yaml
 
 secretGenerator:
   - name: comic-secrets

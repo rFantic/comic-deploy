@@ -14,6 +14,16 @@ spec:
         app: backend
         version: v1
     spec:
+      initContainers:
+        - name: cookie-sync
+          image: docker.io/library/docker-backend:latest
+          imagePullPolicy: Never
+          command: ["python", "/scripts/cookie-sync.py"]
+          volumeMounts:
+            - name: firefox-profile
+              mountPath: /root/.mozilla/firefox/676nh1ee.near
+            - name: cookie-sync-scripts
+              mountPath: /scripts
       containers:
         - name: backend
           image: docker.io/library/docker-backend:latest
@@ -90,6 +100,9 @@ spec:
           hostPath:
             path: /host-firefox-profile
             type: Directory
+        - name: cookie-sync-scripts
+          configMap:
+            name: cookie-sync-scripts
 ---
 apiVersion: v1
 kind: Service
