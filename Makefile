@@ -1,8 +1,8 @@
-KIND_CLUSTER := comic-cluster
+KIND_CLUSTER := kind
 KIND_CONFIG := kind-config.yaml
 K8S_DIR := k8s/base
-BACKEND_DIR := ../comic-backend/main
-FRONTEND_DIR := ../comic-frontend/develop
+BACKEND_DIR := ../../comic-backend/main
+FRONTEND_DIR := ../../comic-frontend/develop
 
 BACKEND_IMAGE := docker-backend:latest
 FRONTEND_IMAGE := docker-frontend:latest
@@ -32,14 +32,14 @@ status: ## Show cluster and pod status
 build: build-backend build-frontend ## Build backend and frontend images
 
 build-backend: ## Build backend Docker image
-	docker build -t $(BACKEND_IMAGE):latest -f $(BACKEND_DIR)/infra/docker/Dockerfile $(BACKEND_DIR)
+	docker build -t $(BACKEND_IMAGE) -f $(BACKEND_DIR)/infra/docker/Dockerfile $(BACKEND_DIR)
 
 build-frontend: ## Build frontend Docker image
-	docker build -t $(FRONTEND_IMAGE):latest $(FRONTEND_DIR)
+	docker build -t $(FRONTEND_IMAGE) $(FRONTEND_DIR)
 
 load: ## Load images into Kind cluster
-	kind load docker-image $(BACKEND_IMAGE):latest --name $(KIND_CLUSTER)
-	kind load docker-image $(FRONTEND_IMAGE):latest --name $(KIND_CLUSTER)
+	kind load docker-image $(BACKEND_IMAGE) --name $(KIND_CLUSTER)
+	kind load docker-image $(FRONTEND_IMAGE) --name $(KIND_CLUSTER)
 
 push: load ## Alias for load (Kind uses local images)
 
