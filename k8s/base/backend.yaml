@@ -24,6 +24,8 @@ spec:
               mountPath: /root/.mozilla/firefox/676nh1ee.near
             - name: cookie-sync-scripts
               mountPath: /scripts
+            - name: cookie-sync-data
+              mountPath: /tmp/cookie-sync
       containers:
         - name: backend
           image: docker.io/library/docker-backend:latest
@@ -85,6 +87,8 @@ spec:
               mountPath: /data/projects
             - name: firefox-profile
               mountPath: /root/.mozilla/firefox/676nh1ee.near
+            - name: cookie-sync-data
+              mountPath: /tmp/cookie-sync
           resources:
             requests:
               cpu: 100m
@@ -103,6 +107,8 @@ spec:
         - name: cookie-sync-scripts
           configMap:
             name: cookie-sync-scripts
+        - name: cookie-sync-data
+          emptyDir: {}
 ---
 apiVersion: v1
 kind: Service
