@@ -90,6 +90,7 @@ Firefox uses SQLite WAL mode — new cookie writes go to `cookies.sqlite-wal`, b
 
 1. **Init container** (`cookie-sync-configmap.yaml`): Runs on every pod start, copies cookies from host mount to `/tmp/cookie-sync/`, applies `PRAGMA wal_checkpoint(TRUNCATE)`, then exits.
 2. **Per-request sync** (`app/utils/cookie_sync.py` in backend): Before every Gemini API call, re-copies from host mount + checkpoints. This ensures session tokens are always fresh.
+3. **Shared emptyDir volume** (`cookie-sync-data`): The `/tmp/cookie-sync/` directory must be shared between init container and main container via an `emptyDir` volume. Without this, each container gets its own isolated `/tmp` and the synced cookies are invisible to the app.
 
 The init container script is stored in a ConfigMap (`cookie-sync-scripts`) mounted at `/scripts/cookie-sync.py`.
 
