@@ -1,7 +1,7 @@
 KIND_CLUSTER := kind
 KIND_CONFIG := kind-config.yaml
 K8S_DIR := k8s/base
-BACKEND_DIR := ../../comic-backend/main
+BACKEND_DIR := ../../comic-backend/develop
 FRONTEND_DIR := ../../comic-frontend/develop
 
 BACKEND_IMAGE := docker-backend:latest
