@@ -22,6 +22,9 @@ spec:
               name: api
             - containerPort: 9001
               name: console
+          volumeMounts:
+            - name: minio-data
+              mountPath: /data
           env:
             - name: MINIO_ROOT_USER
               valueFrom:
@@ -40,6 +43,11 @@ spec:
             limits:
               cpu: 500m
               memory: 512Mi
+      volumes:
+        - name: minio-data
+          hostPath:
+            path: /host-minio-data
+            type: DirectoryOrCreate
 ---
 apiVersion: v1
 kind: Service
